@@ -34,7 +34,7 @@ mongoose.connect(mongoURL,{useNewUrlParser:true,useUnifiedTopology:true}).then((
 
 app.listen(3001,()=>{console.log("Server Started")});
 
-app.use(cors({origin:["https://boisterous-ganache-1aec62.netlify.app/"],methods:["GET","POST"],credentials:true}))
+app.use(cors({methods:["GET","POST"],credentials:true}))
 
 app.use(cookie());
 app.use(express.json());
