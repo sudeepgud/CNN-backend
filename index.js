@@ -232,5 +232,3 @@ app.post('/downloadlabel',async(req,res)=>{
 //         res.status(500).json({ error: 'Server error'});
 //     }
 // })
-
-module.exports = app;

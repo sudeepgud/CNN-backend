@@ -12,9 +12,6 @@
   "author": "Sudeep Gudipalli",
   "license": "ISC",
   "dependencies": {
-    "@tensorflow/tfjs": "^4.4.0",
-    "@tensorflow/tfjs-converter": "^4.4.0",
-    "@tensorflow/tfjs-node": "^4.4.0",
     "bcrypt": "^5.1.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
