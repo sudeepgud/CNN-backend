@@ -172,12 +172,7 @@ app.post('/login',async (req,res)=>{
             const checkPassword = await bcrypt.compare(pass,user.pass);
             if(checkPassword){
                 const token  = createToken(user._id,user.admin);
-                res.cookie("jwt",token,{
-                    withCredentials:true,
-                    httpOnly:false,
-                    maxAge:token_expire*1000
-                })
-                res.status(200).json({status:"Login"});
+                res.status(200).json({status:"Login",token:token});
             }
             else{
                 if(pass === "") errors.pass = "Password is Required";
