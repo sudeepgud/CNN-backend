@@ -1,10 +1,12 @@
+const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 mongoose.set('strictQuery',true);
-const AWS = require('aws-sdk');
-const creds = new AWS.SharedIniFileCredentials({profile:'default'});
-const SNS = new AWS.SNS({creds,region:'ap-south-1'});
+// const AWS = require('aws-sdk');
+//OTP services using AWS, not being used as charges were applied
+// const creds = new AWS.SharedIniFileCredentials({profile:'default'});
+// const SNS = new AWS.SNS({creds,region:'ap-south-1'});
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie-parser');
@@ -14,27 +16,29 @@ const Otp = require('./Schema/otp');
 const Label = require('./Schema/label');
 const app = express(); 
 
+dotenv.config({path:'./config.env'});
+
+const PORT = process.env.PORT;
+
 const token_expire = 24*60*60;
 const createToken=(id)=>{return jwt.sign({id},'Welcome to CP site',{expiresIn:token_expire});}
-
-const mongoURL = "mongodb+srv://sudeepgudipalli:sudeep@userdata.5h8awp7.mongodb.net/?retryWrites=true&w=majority";
 
 const transporter = nodemailer.createTransport({
     service:"gmail",
     auth:{
-        user:"cancerprediction2023@gmail.com",
-        pass:"wdghdhfijolkahlo"
+        user:process.env.mail,
+        pass:process.env.mail_authpass
     },
     tls:{
         rejectUnauthorized: false,
     }
 });
 
-mongoose.connect(mongoURL,{useNewUrlParser:true,useUnifiedTopology:true}).then(()=>console.log('Database Connected')).catch(e=>console.log(e));
+mongoose.connect(process.env.mongoURL,{useNewUrlParser:true,useUnifiedTopology:true}).then(()=>console.log('Database Connected')).catch(e=>console.log(e));
 
-app.listen(3001,()=>{console.log("Server Started")});
+app.listen(PORT,()=>{console.log("Server Started")});
 
-app.use(cors({methods:["GET","POST"],credentials:true}))
+app.use(cors({origin:["http://localhost:3000"],methods:["GET","POST"],credentials:true}))
 
 app.use(cookie());
 app.use(express.json());
@@ -88,27 +92,27 @@ app.post('/otp',async(req,res)=>{
         const otp = await Otp.create({'email':email,'mobile':mobile});
         if(otp){
             const mail = {
-                from:"cancerprediction2023@gmail.com",
+                from:process.env.mail,
                 to: email,
                 subject: "6-Digit Verification OTP",
                 text: "Your OTP is "+otp.otp+", please verify OTP in 2 minutes",
             };
-            const params = {
-                Message:"Your OTP is "+otp.otp+", please verify OTP in 2 minutes",
-                PhoneNumber:mobile,
-                MessageAttributes:{
-                    'AWS.SNS.SMS.SMSType':{
-                        DataType:'String',
-                        StringValue:'Transactional'
-                    }
-                }
-            };
-            await SNS.publish(params,(err,data)=>{
-                if(err){
-                    return res.json({error:"Invalid Number."});
-                }
-            })
-            await transporter.sendMail(mail,function(err,success){
+            // const params = {
+            //     Message:"Your OTP is "+otp.otp+", please verify OTP in 2 minutes",
+            //     PhoneNumber:mobile,
+            //     MessageAttributes:{
+            //         'AWS.SNS.SMS.SMSType':{
+            //             DataType:'String',
+            //             StringValue:'Transactional'
+            //         }
+            //     }
+            // };
+            // SNS.publish(params,(err,data)=>{
+            //     if(err){
+            //         return res.json({error:"Invalid Number."});
+            //     }
+            // })
+            transporter.sendMail(mail,function(err,success){
                 if(err){
                     return res.json({error:"E-mail could not be Sent"});
                 }
@@ -130,6 +134,7 @@ app.post('/verifyotp',async(req,res)=>{
         res.status(201).json({status:"Invalid OTP"});
     }
 })
+
 //Create Account
 app.post('/create',async(req,res)=>{
     const errors = {email:"",mobile:""};
@@ -183,6 +188,7 @@ app.post('/login',async (req,res)=>{
         }
 });
 
+//Label Upload
 app.post('/uploadlabel',async (req,res)=>{
     try{
         let label = await Label.create(req.body);
@@ -192,6 +198,7 @@ app.post('/uploadlabel',async (req,res)=>{
     }
 })
 
+//Label Download
 app.post('/downloadlabel',async(req,res)=>{
     const images = await Label.find({});
     res.status(200).json({
@@ -199,3 +206,25 @@ app.post('/downloadlabel',async(req,res)=>{
     })
 
 })
+
+// //Predict Given Image
+// app.post('/predict',async(req,res)=>{
+//     try {
+//         const fileBuffer = req.body.image;
+//         const imageTensor = await preprocessImage(fileBuffer);
+//         const model = await tf.loadLayersModel('C:\Users\sudee\Documents\Project\backend\model.json');
+//         const prediction = model.predict(imageTensor);
+//         console.log(prediction);
+//         const result = prediction.dataSync()[0];
+//         let predictionResult;
+//         if (result >= 0.5) {
+//           predictionResult = 'Parasitized';
+//         } else {
+//           predictionResult = 'Uninfected';
+//         }
+//         res.json({ prediction: predictionResult });
+//       } catch (err) {
+//         console.error(err);
+//         res.status(500).json({ error: 'Server error'});
+//     }
+// })
