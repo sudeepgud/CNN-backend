@@ -38,6 +38,10 @@ mongoose.connect(process.env.mongoURL,{useNewUrlParser:true,useUnifiedTopology:t
 
 app.listen(PORT,()=>{console.log("Server Started")});
 
+app.get("/",(req,res)=>{
+    res.send("Express is Running");
+})
+
 app.use(cors({origin:["http://localhost:3000"],methods:["GET","POST"],credentials:true}))
 
 app.use(cookie());
