@@ -42,7 +42,7 @@ app.get("/",(req,res)=>{
     res.send("Express is Running");
 })
 
-app.use(cors({methods:["GET","POST"],credentials:true}))
+app.use(cors({origin:["https://malaria-frontend-g5az.onrender.com"],methods:["GET","POST"],credentials:true}))
 
 app.use(cookie());
 app.use(express.json());
